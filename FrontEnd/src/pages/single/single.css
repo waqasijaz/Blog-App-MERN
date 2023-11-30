@@ -1,0 +1,7 @@
+.single{
+    display: flex;
+}
+
+.singlePostImg{
+    height: auto !important;
+}
