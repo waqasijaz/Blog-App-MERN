@@ -17,6 +17,15 @@ export default function Write() {
       categories,
       desc,
     };
+    console.log('user',user)
+    const usera = localStorage.user // Get the JWT token from localStorage
+    const responseObject = JSON.parse(usera);
+    const token = responseObject.token
+    const config = {
+      headers: {
+          Authorization: `Bearer ${token}`,
+      },
+  };
     if (file) {
       const data =new FormData();
       const filename = Date.now() + file.name;
@@ -28,7 +37,7 @@ export default function Write() {
       } catch (err) {}
     }
     try {
-      const res = await axios.post("/posts", newPost);
+      const res = await axios.post("/posts", newPost,config);
       window.location.replace("/post/" + res.data._id);
     } catch (err) {}
   };

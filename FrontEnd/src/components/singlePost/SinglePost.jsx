@@ -27,20 +27,36 @@ export default function SinglePost() {
 
   const handleDelete = async () => {
     try {
+      const user = localStorage.user // Get the JWT token from localStorage
+      const responseObject = JSON.parse(user);
+      const token = responseObject.token
       await axios.delete(`/posts/${post._id}`, {
-        data: { username: user.username },
+        data: { username: responseObject.username },
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        }
       });
       window.location.replace("/");
     } catch (err) {}
   };
 
   const handleUpdate = async () => {
+    debugger
     try {
+      const user = localStorage.user 
+      const responseObject = JSON.parse(user);
+      const token = responseObject.token
+      
       await axios.put(`/posts/${post._id}`, {
-        username: user.username,
+        username: responseObject.username,
         title,
         desc,
-      });
+      },{
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      }
+      );
       setUpdateMode(false)
     } catch (err) {}
   };

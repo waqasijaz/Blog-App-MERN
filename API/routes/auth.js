@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const { generateToken } = require('../jwt'); // Import the JWT functions
 
 //REGISTER
 router.post("/register", async (req, res) => {
@@ -22,24 +23,24 @@ router.post("/register", async (req, res) => {
 });
 
 //LOGIN
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
-    console.log('Request Body:', req.body);
-
     const user = await User.findOne({ username: req.body.username });
-    console.log('User found:', user);
 
     if (!user) {
-      return res.status(400).json("Wrong credentials!");
+      return res.status(400).json('Wrong credentials!');
     }
 
     const validated = await bcrypt.compare(req.body.password, user.password);
     if (!validated) {
-      return res.status(400).json("Wrong credentials!");
+      return res.status(400).json('Wrong credentials!');
     }
 
-    const { password, ...others } = user._doc;
-    return res.status(200).json(others);
+    // Generate a JWT token and send it as a response
+    const token = generateToken(user._id);
+    console.log(token,'token')
+    // Return the token along with other user information
+    return res.status(200).json({ token, ...user._doc });
   } catch (err) {
     console.error('Error in login route:', err);
     return res.status(500).json(err);

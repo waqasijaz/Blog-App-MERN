@@ -1,9 +1,10 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const Post = require("../models/Post");
+const { authenticate } = require('../jwt');
 
 //CREATE POST
-router.post("/", async (req, res) => {
+router.post("/", authenticate, async (req, res) => {
   const newPost = new Post(req.body);
   try {
     const savedPost = await newPost.save();
@@ -14,9 +15,12 @@ router.post("/", async (req, res) => {
 });
 
 //UPDATE POST
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticate, async (req, res) => {
+  console.log("route",req)
   try {
     const post = await Post.findById(req.params.id);
+    console.log("===========  postupdate username", req.body)
+
     if (post.username === req.body.username) {
       try {
         const updatedPost = await Post.findByIdAndUpdate(
@@ -39,7 +43,7 @@ router.put("/:id", async (req, res) => {
 });
 
 //DELETE POST
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticate, async (req, res) => {
   try {
     let postData = await Post.findById(req.params.id);
     console.log("===========  postdetele username", postData)
