@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const Post = require("../models/Post");
-const { authenticate } = require('../jwt');
+const { authenticate } = require("../jwt");
 
 //CREATE POST
 router.post("/", authenticate, async (req, res) => {
@@ -16,10 +16,10 @@ router.post("/", authenticate, async (req, res) => {
 
 //UPDATE POST
 router.put("/:id", authenticate, async (req, res) => {
-  console.log("route",req)
+  console.log("route", req);
   try {
     const post = await Post.findById(req.params.id);
-    console.log("===========  postupdate username", req.body)
+    console.log("===========  postupdate username", req.body);
 
     if (post.username === req.body.username) {
       try {
@@ -46,18 +46,17 @@ router.put("/:id", authenticate, async (req, res) => {
 router.delete("/:id", authenticate, async (req, res) => {
   try {
     let postData = await Post.findById(req.params.id);
-    console.log("===========  postdetele username", postData)
+    console.log("===========  postdetele username", postData);
     // console.log("========= req.body.username",  req.body)
     // console.log("========= req.body.params",  req.params)
     if (postData.username == req.body.username) {
       try {
-
         // const deletedData = await postData.delete();
-        const response = await Post.findByIdAndDelete(req.params.id);;
+        const response = await Post.findByIdAndDelete(req.params.id);
         console.log("Removed post:", response);
-            res.status(200).json("Post has been deleted...");
+        res.status(200).json("Post has been deleted...");
       } catch (err) {
-        console.log("error =================== eror ", err)
+        console.log("error =================== eror ", err);
 
         res.status(500).json(err);
       }
@@ -65,7 +64,7 @@ router.delete("/:id", authenticate, async (req, res) => {
       res.status(401).json("You can delete only your post!");
     }
   } catch (err) {
-    console.log("error =================== eror ", error)
+    console.log("error =================== eror ", error);
     res.status(500).json(err);
   }
 });
@@ -82,22 +81,29 @@ router.get("/:id", async (req, res) => {
 
 //GET ALL POSTS
 router.get("/", async (req, res) => {
+  const page = parseInt(req.query.page) || 1; // Current page (default to 1)
+  const limit = parseInt(req.query.limit) || 10; // Number of items per page (default to 10)
   const username = req.query.user;
   const catName = req.query.cat;
+
   try {
-    let posts;
+    let query = {}; 
+   
     if (username) {
-      posts = await Post.find({ username });
+      query.username = username;
     } else if (catName) {
-      posts = await Post.find({
-        categories: {
-          $in: [catName],
-        },
-      });
-    } else {
-      posts = await Post.find();
+      query.categories = {
+        $in: [catName],
+      };
     }
-    res.status(200).json(posts);
+
+    const totalPosts = await Post.countDocuments(query);
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find(query).skip(skip).limit(limit);
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    res.status(200).json({ posts, totalPages });
   } catch (err) {
     res.status(500).json(err);
   }
